@@ -2,7 +2,10 @@ var alertLevelCharacteristic;
 
 function onReadButtonClick() {
   log('Requesting Bluetooth Device...');
-  navigator.bluetooth.requestDevice({filters: [{services: ['link_loss']}]})
+  navigator.bluetooth.requestDevice({
+   // filters: [...] <- Prefer filters to save energy & show relevant devices.
+      acceptAllDevices: true,
+      optionalServices: ['link_loss']})
   .then(device => {
     log('Connecting to GATT Server...');
     return device.gatt.connect();
@@ -35,10 +38,10 @@ function onWriteButtonClick() {
     return;
   }
   log('Setting Alert Level...');
-  let value = document.querySelector('#alertLevelValue').value;
-  alertLevelCharacteristic.writeValue(new Uint8Array([value]))
+  let value = Uint8Array.of(document.querySelector('#alertLevelValue').value);
+  alertLevelCharacteristic.writeValue(value)
   .then(_ => {
-    log('> Alert Level changed to: ' + getAlertLevel(value));
+    log('> Alert Level changed to: ' + getAlertLevel(new DataView(value.buffer)));
   })
   .catch(error => {
     log('Argh! ' + error);
